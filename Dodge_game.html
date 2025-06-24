@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dodge the Falling Blocks</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      overflow: hidden;
+      font-family: sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #222;
+      border: 3px solid #fff;
+    }
+
+    h1 {
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Dodge the Falling Blocks</h1>
+<canvas id="gameCanvas" width="400" height="500"></canvas>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const player = {
+    x: 180,
+    y: 450,
+    width: 40,
+    height: 40,
+    speed: 6
+  };
+
+  let blocks = [];
+  let gameOver = false;
+  let score = 0;
+
+  // Generate a falling block
+  function spawnBlock() {
+    const block = {
+      x: Math.random() * (canvas.width - 30),
+      y: 0,
+      width: 30,
+      height: 30,
+      speed: 3 + Math.random() * 2
+    };
+    blocks.push(block);
+  }
+
+  setInterval(spawnBlock, 1000);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' && player.x > 0) {
+      player.x -= player.speed;
+    } else if (e.key === 'ArrowRight' && player.x + player.width < canvas.width) {
+      player.x += player.speed;
+    }
+  });
+
+  function drawPlayer() {
+    ctx.fillStyle = '#00e0ff';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
+
+  function drawBlocks() {
+    ctx.fillStyle = '#ff4444';
+    for (let b of blocks) {
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+    }
+  }
+
+  function checkCollision(block) {
+    return (
+      block.x < player.x + player.width &&
+      block.x + block.width > player.x &&
+      block.y < player.y + player.height &&
+      block.y + block.height > player.y
+    );
+  }
+
+  function update() {
+    if (gameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPlayer();
+    drawBlocks();
+
+    for (let b of blocks) {
+      b.y += b.speed;
+
+      if (checkCollision(b)) {
+        gameOver = true;
+        alert("💥 Game Over! Your score: " + score);
+        document.location.reload();
+      }
+
+      if (b.y > canvas.height) {
+        score++;
+      }
+    }
+
+    // Keep only blocks on screen
+    blocks = blocks.filter(b => b.y < canvas.height + b.height);
+
+    // Draw score
+    ctx.fillStyle = "#fff";
+    ctx.font = "16px Arial";
+    ctx.fillText("Score: " + score, 10, 20);
+
+    requestAnimationFrame(update);
+  }
+
+  update();
+</script>
+
+</body>
+</html>
